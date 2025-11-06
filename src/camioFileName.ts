@@ -1,0 +1,1 @@
+export const camioFileName: string = "House_with_rainbow";
