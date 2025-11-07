@@ -40,15 +40,22 @@
         <div class="row sections-container">
             <div class="col-md-6 left-section-container">
                 <div class="left-section">
-                    <div class="top-section" id="coordsRow">
-                        <div class="coordField">
-                            <label for="xCoord" class="col-form-label">x:</label>
-                            <input type="number" id="xCoord" class="form-control" min="0">
+                    <div class="topRow">
+                        <div id="coordsRow">
+                            <div class="coordField">
+                                <label for="xCoord" class="col-form-label">x:</label>
+                                <input type="number" id="xCoord" class="form-control" min="0">
+                            </div>
+
+                            <div class="coordField">
+                                <label for="yCoord" class="col-form-label">y:</label>
+                                <input type="number" id="yCoord" class="form-control" min="0">
+                            </div>
                         </div>
 
-                        <div class="coordField">
-                            <label for="yCoord" class="col-form-label">y:</label>
-                            <input type="number" id="yCoord" class="form-control" min="0">
+                        <div id="hotspotRow">
+                            <label for="hotspotSelect" class="col-form-label">Hotspot:</label>
+                            <select id="hotspotSelect" class="form-select"></select>
                         </div>
                     </div>
 
@@ -60,7 +67,7 @@
 
             <div class="col-md-6 right-section-container">
                 <div class="right-section">
-                    <div class="top-section">
+                    <div class="topRow">
                         <div id="audioState">Audio off</div>
                     </div>
 

@@ -1,4 +1,3 @@
-
 /* BODY */
 
 body {
@@ -70,6 +69,8 @@ body {
     padding-right: 50px;
 }
 
+/* SESSION AND AUDIO STATE */
+
 .session-container {
     padding-bottom: 20px;
 }
@@ -95,6 +96,12 @@ body {
     font-weight: bold;
 }
 
+#audioState {
+    color: #f8f9fa;
+}
+
+/* TWO BIG SECTIONS */
+
 .left-section-container,
 .right-section-container {
     margin-bottom: 15px;
@@ -113,35 +120,64 @@ body {
     height: 100%;
 }
 
-.top-section {
+/* TOP ROW OF SECTIONS */
+
+.topRow {
     display: flex;
-    align-items: center;
-    padding: 0px;
-    height: 70px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 90px;
+    color: #f8f9fa;
 }
 
+/* COORDS ROW */
+
 #coordsRow {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  color: #fff;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .coordField {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 25px;
 }
 
-.coordField input {
-  width: 89px;
+#xCoord,
+#yCoord {
+    width: 93px;
+    height: 25px;
+    background-color: #f8f9fa;
+    color: #333;
 }
 
-#audioState {
-    color: #fff;
+/* HOTSPOT ROW */
+
+#hotspotRow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 25px;
 }
 
-#image-area, 
+#hotspotSelect {
+    width: 166px;
+    height: 25px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+#hotspotSelect {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* IMAGE AND RESPONSE */
+
+#image-area,
 #response-area {
     flex-grow: 1;
     padding: 0px;

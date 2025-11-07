@@ -7,10 +7,18 @@ import {
     drawPointedPosition
 } from '../utils/utils';
 
+type Hotspot = {
+    color: [number, number, number, number];
+    title: string;
+    description: string;
+    sound: string;
+};
+
 interface UIElements {
     coordContainer: HTMLElement;
     xCoord: HTMLInputElement;
     yCoord: HTMLInputElement;
+    hotspotSelect: HTMLSelectElement;
     imgTemplateContainer: HTMLElement;
 }
 
@@ -20,6 +28,10 @@ export class PositionView {
     private elements: UIElements | null = null;
 
     private base64Template: string | null = null;
+
+    // ---------------
+    // INITIALIZATION
+    // ---------------
 
     private constructor() { }
 
@@ -37,6 +49,7 @@ export class PositionView {
 
         this.base64Template = await this.getReducedTemplate();
         this.setInputCoordsMaxLimits(this.base64Template);
+        this.populateHotspotSelect();
         this.updateImageView();
 
         this.elements.xCoord.oninput = async () => {
@@ -54,9 +67,14 @@ export class PositionView {
             coordContainer: document.getElementById("coordContainer") as HTMLElement,
             xCoord: document.getElementById("xCoord") as HTMLInputElement,
             yCoord: document.getElementById("yCoord") as HTMLInputElement,
+            hotspotSelect: document.getElementById("hotspotSelect") as HTMLSelectElement,
             imgTemplateContainer: document.getElementById("imgTemplateContainer") as HTMLElement
         }
     }
+
+    // ----------
+    // GET IMAGE
+    // ----------
 
     private async getReducedTemplate(): Promise<string> {
         const firstTemplate = await this.getFileTemplate();
@@ -73,6 +91,52 @@ export class PositionView {
         return await imageToBase64(blob);
     }
 
+    // -------------
+    // GET HOTSPOTS
+    // -------------
+
+    private async getFileData(): Promise<any> {
+        const path = "/" + camioFileName + "/data.json";
+        const response = await fetch(path);
+        if (!response.ok) throw new Error(`Cannot fetch ${path}`);
+        return await response.json();
+    }
+
+    private async getHotspotsTitle(): Promise<string[]> {
+        const data = await this.getFileData();
+
+        let titles: string[] = [];
+        data.hotspots.forEach((element: Hotspot) => {
+            titles.push(element.title);
+        });
+
+        return titles;
+    }
+
+    private async populateHotspotSelect() {
+        if (!this.elements) return console.error("UI elements not initialized");
+
+        const titles = await this.getHotspotsTitle();
+        this.elements.hotspotSelect.innerHTML = "";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "null";
+        defaultOption.textContent = "Null";
+        defaultOption.selected = true;
+        this.elements.hotspotSelect.appendChild(defaultOption);
+
+        titles.forEach(title => {
+            const option = document.createElement("option");
+            option.value = title;
+            option.textContent = title;
+            this.elements!.hotspotSelect.appendChild(option);
+        });
+    }
+
+    // ---------------------
+    // NUMERIC INPUT LIMITS
+    // ---------------------
+
     private async setInputCoordsMaxLimits(base64Img: string): Promise<void> {
         if (!this.elements) return console.error("UI elements not initialized");
 
@@ -80,6 +144,23 @@ export class PositionView {
         this.elements.xCoord.max = x.toString();
         this.elements.yCoord.max = y.toString();
     }
+
+    private enforceInputMinMax(input: HTMLInputElement): void {
+        const max = parseInt(input.max);
+        const min = parseInt(input.min);
+        let value = input.valueAsNumber;
+
+        if (isNaN(value)) return;
+
+        if (value > max) value = max;
+        if (value < min) value = min;
+
+        input.valueAsNumber = value;
+    }
+
+    // -------------------------
+    // SHOW IMAGE WITH POSITION
+    // -------------------------
 
     private async updateImageView(): Promise<void> {
         if (!this.elements) return console.error("UI elements not initialized");
@@ -102,18 +183,9 @@ export class PositionView {
         this.elements.imgTemplateContainer.appendChild(img);
     }
 
-    private enforceInputMinMax(input: HTMLInputElement): void {
-        const max = parseInt(input.max);
-        const min = parseInt(input.min);
-        let value = input.valueAsNumber;
-
-        if (isNaN(value)) return;
-
-        if (value > max) value = max;
-        if (value < min) value = min;
-
-        input.valueAsNumber = value;
-    }
+    // ------------------------
+    // GET POINTED COORDINATES
+    // ------------------------
 
     public getPointedCoords(): { x: number | null, y: number | null } {
         if (!this.elements) throw new Error("UI elements not initialized");
@@ -123,5 +195,16 @@ export class PositionView {
         const y = Number.isNaN(this.elements.yCoord.valueAsNumber) ? null : this.elements.yCoord.valueAsNumber;
 
         return { x, y };
+    }
+
+    // --------------------
+    // GET POINTED HOTSPOT
+    // --------------------
+
+    public getPointedHotspot(): string | null {
+        if (!this.elements) throw new Error("UI elements not initialized");
+        if (!this.base64Template) throw new Error("Image template missing");
+
+        return (this.elements.hotspotSelect.value === "null") ? null : this.elements.hotspotSelect.value;
     }
 }

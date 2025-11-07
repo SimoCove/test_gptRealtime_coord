@@ -41,6 +41,9 @@ export class RealtimeInteraction {
 
     private audioResponsesOn: boolean = false;
 
+    private requestStartTime: number | null = null;
+    private responseStarted: boolean = false;
+
     // ---------------
     // INITIALIZATION
     // ---------------
@@ -317,6 +320,7 @@ export class RealtimeInteraction {
                 // handle audio input
                 case "input_audio_buffer.committed":
                     this.dataChannel!.send(JSON.stringify({ type: "response.create" }));
+                    this.startResponseTimer();
                     break;
 
                 // transcription of the text response in the UI
@@ -325,10 +329,12 @@ export class RealtimeInteraction {
                     break;
 
                 case "response.output_text.delta":
+                    this.printResponseTime();
                     if (msg.delta && this.elements) this.elements.modelResponse.textContent += msg.delta;
                     break;
 
                 case "response.output_audio_transcript.delta":
+                    this.printResponseTime();
                     if (msg.delta && this.elements) this.elements.modelResponse.textContent += msg.delta;
                     break;
 
@@ -674,5 +680,22 @@ export class RealtimeInteraction {
         }
 
         this.dataChannel.send(JSON.stringify(audioDisFeedback));
+    }
+
+    // --------------
+    // RESPONSE TIME
+    // --------------
+
+    private startResponseTimer(): void {
+        this.requestStartTime = performance.now();
+        this.responseStarted = false;
+    }
+
+    private printResponseTime(): void {
+        if (!this.responseStarted && this.requestStartTime != null) {
+            const latency = performance.now() - this.requestStartTime;
+            console.log(`Response time: ${latency.toFixed(0)} ms`);
+            this.responseStarted = true;
+        }
     }
 }
