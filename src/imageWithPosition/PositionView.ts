@@ -99,7 +99,6 @@ export class PositionView {
 
         const img = document.createElement("img");
         img.src = base64Img;
-        img.classList.add("imgTemplate");
         this.elements.imgTemplateContainer.appendChild(img);
     }
 

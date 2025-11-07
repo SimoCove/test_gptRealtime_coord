@@ -29,7 +29,6 @@
 
     <main class="main-container">
         <div class="session-container">
-            <div class="mb-2">Press "Start session" to begin the interaction and "Stop session" to end it.</div>
             <div>
                 <button class="btn btn-secondary me-2" id="startBtn" disabled>Start session</button>
                 <button class="btn btn-secondary me-3" id="stopBtn" disabled>Stop session</button>
@@ -39,7 +38,7 @@
 
 
         <div class="row sections-container">
-            <div class="col-md-7">
+            <div class="col-md-6 left-section-container">
                 <div class="left-section">
                     <div class="top-section" id="coordsRow">
                         <div class="coordField">
@@ -59,7 +58,7 @@
                 </div>
             </div>
 
-            <div class="col-md-5">
+            <div class="col-md-6 right-section-container">
                 <div class="right-section">
                     <div class="top-section">
                         <div id="audioState">Audio off</div>
@@ -74,6 +73,30 @@
     </main>
 
     <script type="module" src="src/main"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const imgTemplateContainer = document.getElementById("imgTemplateContainer");
+            const modelResponse = document.getElementById("modelResponse");
+
+            function adjustResponseHeight() {
+                const img = imgTemplateContainer.querySelector("img");
+                if (img && img.complete) modelResponse.style.maxHeight = img.clientHeight + "px";
+            }
+
+            const observer = new MutationObserver(() => {
+                const img = imgTemplateContainer.querySelector("img");
+                if (img) {
+                    img.addEventListener("load", adjustResponseHeight);
+                    adjustResponseHeight();
+                }
+            });
+
+            observer.observe(imgTemplateContainer, { childList: true, subtree: true });
+
+            window.addEventListener("resize", adjustResponseHeight);
+        });
+    </script>
 </body>
 
 </html>

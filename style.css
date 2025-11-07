@@ -1,6 +1,12 @@
+
+/* BODY */
+
 body {
     font-family: Arial, sans-serif;
+    min-width: 455px;
 }
+
+/* NAVBAR */
 
 .navbar {
     padding-left: 50px;
@@ -14,7 +20,8 @@ body {
 
 #title {
     color: #fff;
-    margin-bottom: 0px;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .tooltip-container {
@@ -22,6 +29,7 @@ body {
 }
 
 .tooltip-icon {
+    font-weight: bold;
     background: #fff;
     border-radius: 50%;
     width: 25px;
@@ -54,15 +62,16 @@ body {
     opacity: 1;
 }
 
+/* MAIN */
+
 .main-container {
-    min-width: 450px;
-    padding-top: 30px;
+    padding-top: 20px;
     padding-left: 50px;
     padding-right: 50px;
 }
 
 .session-container {
-    padding-bottom: 30px;
+    padding-bottom: 20px;
 }
 
 .stateOn {
@@ -86,8 +95,9 @@ body {
     font-weight: bold;
 }
 
-.sections-container {
-    min-height: 400px;
+.left-section-container,
+.right-section-container {
+    margin-bottom: 15px;
 }
 
 .left-section,
@@ -98,7 +108,7 @@ body {
     padding-bottom: 15px;
     padding-left: 15px;
     padding-right: 15px;
-    background-color: #3a3f44;
+    background-color: #6c757d;
     border-radius: 8px;
     height: 100%;
 }
@@ -135,31 +145,21 @@ body {
 #response-area {
     flex-grow: 1;
     padding: 0px;
-    overflow: hidden;
 }
 
 #modelResponse {
-    min-height: 120px;
     padding: 12px;
-    border: 1px solid #ccc;
     border-radius: 6px;
     background-color: #f8f9fa;
     color: #333;
     font-family: monospace;
     white-space: pre-wrap;
     overflow-y: auto;
+    height: 100%;
 }
 
 #imgTemplateContainer img {
     width: 100%;
     height: auto;
-    display: block;
     border-radius: 6px;
-}
-
-.imgTemplate {
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    max-width: 100%;
-    height: auto;
 }
