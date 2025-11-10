@@ -26,6 +26,9 @@ interface UIElements {
     sessionState: HTMLElement;
     audioState: HTMLElement;
     modelResponse: HTMLElement;
+    xCoord: HTMLInputElement;
+    yCoord: HTMLInputElement;
+    hotspotSelect: HTMLSelectElement;
 }
 
 export class RealtimeInteraction {
@@ -43,6 +46,9 @@ export class RealtimeInteraction {
 
     private requestStartTime: number | null = null;
     private responseStarted: boolean = false;
+
+    private lastCoords: { lastX: number | null, lastY: number | null } = { lastX: -1, lastY: -1 }; // -1 are only placeholders
+    private imgDimensions: { x: number; y: number } = { x: -1, y: -1 };
 
     // ---------------
     // INITIALIZATION
@@ -76,6 +82,9 @@ export class RealtimeInteraction {
             sessionState: document.getElementById("sessionState") as HTMLElement,
             audioState: document.getElementById("audioState") as HTMLElement,
             modelResponse: document.getElementById("modelResponse") as HTMLElement,
+            xCoord: document.getElementById("xCoord") as HTMLInputElement,
+            yCoord: document.getElementById("yCoord") as HTMLInputElement,
+            hotspotSelect: document.getElementById("hotspotSelect") as HTMLSelectElement
         }
     }
 
@@ -289,7 +298,7 @@ export class RealtimeInteraction {
         return true;
     }
 
-    private handleDataChannelMessages(e: MessageEvent): void {
+    private async handleDataChannelMessages(e: MessageEvent): Promise<void> {
         try {
             const msg: RealtimeMessage = JSON.parse(e.data);
             //console.log(msg);
@@ -319,6 +328,7 @@ export class RealtimeInteraction {
 
                 // handle audio input
                 case "input_audio_buffer.committed":
+                    await this.sendPointedPositionIfNecessary();
                     this.dataChannel!.send(JSON.stringify({ type: "response.create" }));
                     this.startResponseTimer();
                     break;
@@ -486,8 +496,9 @@ export class RealtimeInteraction {
             if (!finalTemplateOutput) throw new Error("The template image is too large to be sent");
             if (!finalColorMapOutput) throw new Error("The color map image is too large to be sent");
 
-            if (finalTemplateOutput) await this.sendImage(finalTemplateOutput, "template");
-            if (finalColorMapOutput) await this.sendImage(finalColorMapOutput, "colorMap");
+            this.imgDimensions = await getImgDimensions(finalTemplateOutput);
+            await this.sendImage(finalTemplateOutput, "template");
+            await this.sendImage(finalColorMapOutput, "colorMap");
 
         } catch (err) {
             console.error("Failed to prepare or send file content:", err);
@@ -697,5 +708,125 @@ export class RealtimeInteraction {
             console.log(`Response time: ${latency.toFixed(0)} ms`);
             this.responseStarted = true;
         }
+    }
+
+    // -----------------
+    // POINTED POSITION
+    // -----------------
+
+    private async sendPointedPositionIfNecessary(): Promise<void> {
+        try {
+            const { x: currentX, y: currentY } = this.getCurrentPointedPosition();
+            const currentHotspot = this.getCurrentHotspot();
+            const { x: lastX, y: lastY } = this.getLastCoords();
+
+            const positionChanged = this.checkPointedPositionVariation(currentX, currentY, lastX, lastY);
+
+            if (positionChanged) {
+                this.lastCoords = { lastX: currentX, lastY: currentY };
+                await this.sendPointedPositionCoords(currentX, currentY);
+            }
+
+        } catch (err) {
+            if (err) console.error(err);
+            this.stopSession();
+        }
+    }
+
+    private getCurrentPointedPosition(): { x: number | null, y: number | null } {
+        if (!this.elements) throw new Error("UI elements not initialized");
+
+        const x = Number.isNaN(this.elements.xCoord.valueAsNumber) ? null : this.elements.xCoord.valueAsNumber;
+        const y = Number.isNaN(this.elements.yCoord.valueAsNumber) ? null : this.elements.yCoord.valueAsNumber;
+
+        return { x, y };
+    }
+
+    private getCurrentHotspot(): string | null {
+        if (!this.elements) throw new Error("UI elements not initialized");
+
+        const hotspot = this.elements.hotspotSelect.value === "null" ? null : this.elements.hotspotSelect.value;
+
+        return hotspot;
+    }
+
+    private getLastCoords(): { x: number | null, y: number | null } {
+        const { lastX: x, lastY: y } = this.lastCoords;
+        return { x, y };
+    }
+
+    private checkPointedPositionVariation(
+        currentX: number | null,
+        currentY: number | null,
+        lastX: number | null,
+        lastY: number | null,
+        threshold: number = 5 // pixel
+    ): boolean {
+        // if even just one of the two coordinates is null, it means that the user is not pointing
+        const currNull = currentX === null || currentY === null;
+        const lastNull = lastX === null || lastY === null;
+
+        // the user was not pointing before and is not pointing now --> no change
+        if (currNull && lastNull) {
+            return false;
+        }
+
+        // the user was not pointing before, but is pointing now --> change
+        if (!currNull && lastNull) {
+            return true;
+        }
+
+        // the user was pointing before, but is not pointing now --> change
+        if (currNull && !lastNull) {
+            return true;
+        }
+
+        // the user was pointing before and is pointing now --> threshold control
+        const diffX = Math.abs(currentX! - lastX!);
+        const diffY = Math.abs(currentY! - lastY!);
+        return diffX >= threshold || diffY >= threshold;
+    }
+
+    private async sendPointedPositionCoords(currentX: number | null, currentY: number | null): Promise<void> {
+        if (!this.dataChannel) throw new Error("Data channel missing");
+
+        let textMsg = "";
+
+        if (currentX === null || currentY === null) {
+            textMsg = `
+                    The user is not pointing any position.
+                    `
+        } else {
+            const { normX: normX, normY: normY } = this.getNormalizedCoords(currentX, currentY);
+
+            textMsg = `
+                    The user is pointing the following coordinates:
+                    (x: ${normX.toFixed(3)}, y: ${normY.toFixed(3)})
+                    `
+        }
+
+        const res = {
+            type: "conversation.item.create",
+            item: {
+                type: "message",
+                role: "user",
+                content: [
+                    {
+                        type: "input_text",
+                        text: textMsg
+                    }
+                ]
+            }
+        }
+
+        this.dataChannel.send(JSON.stringify(res));
+        console.log("User pointed position sent to the model");
+    }
+
+    private getNormalizedCoords(currentX: number, currentY: number): { normX: number, normY: number } {
+        const { x: imgX, y: imgY } = this.imgDimensions;
+        const normX = currentX / imgX;
+        const normY = currentY / imgY;
+        return { normX, normY };
     }
 }
