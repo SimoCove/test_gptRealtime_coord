@@ -47,7 +47,7 @@ export class RealtimeInteraction {
     private requestStartTime: number | null = null;
     private responseStarted: boolean = false;
 
-    private lastCoords: { lastX: number | null, lastY: number | null } = { lastX: -1, lastY: -1 }; // -1 are only placeholders
+    private lastCoords: { lastX: number | null, lastY: number | null } = { lastX: 100000, lastY: 100000 }; // 100000 are only placeholders
     private imgDimensions: { x: number; y: number } = { x: -1, y: -1 };
 
     // ---------------
@@ -103,6 +103,8 @@ export class RealtimeInteraction {
         if (!(await this.setupLocalAudio())) return;
         if (!this.setupDataChannel()) return;
         await this.connectToModel();
+
+        this.resetLastCoords();
     }
 
     private stopSession(): void {
@@ -134,6 +136,14 @@ export class RealtimeInteraction {
         console.log("Session closed");
         this.handleSessionState(false);
         this.handleAudioState(false);
+    }
+
+    // ------------------
+    // RESET COORDINATES
+    // ------------------
+
+    private resetLastCoords(): void {
+        this.lastCoords = { lastX: 100000, lastY: 100000 }; // 100000 are only placeholders
     }
 
     // ------------
