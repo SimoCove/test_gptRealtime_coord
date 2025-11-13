@@ -572,14 +572,16 @@ export class RealtimeInteraction {
     private async sendImage(base64Image: string, type: string): Promise<void> {
         if (!this.dataChannel) return this.stopSession();
 
+        const {x: x, y: y} = this.imgDimensions;
+
         let textMsg: string = "";
         if (type === "template") {
             textMsg = `
-                    Tactile drawing template image:
+                    Tactile drawing template image (dimensions: ${x}x${y} px):
                     `;
         } else if (type === "colorMap") {
             textMsg = `
-                    Tactile drawing color map image:
+                    Tactile drawing color map image (dimensions: ${x}x${y} px):
                     `;
         }
 
@@ -807,11 +809,13 @@ export class RealtimeInteraction {
                     The user is not pointing any position.
                     `
         } else {
-            const { normX: normX, normY: normY } = this.getNormalizedCoords(currentX, currentY);
+            const {x: imgDImX, y: imgDimY} = this.imgDimensions;
 
             textMsg = `
-                    The user is pointing the following coordinates:
-                    (x: ${normX.toFixed(3)}, y: ${normY.toFixed(3)})
+                    The user is pointing at the following coordinates (in pixels):
+                    (x: ${currentX} px, y: ${currentY} px)
+                    The drawing template  the color map have the following dimensions:
+                    ${imgDImX}x${imgDimY} px
                     `
         }
 
@@ -831,12 +835,5 @@ export class RealtimeInteraction {
 
         this.dataChannel.send(JSON.stringify(res));
         console.log("User pointed position sent to the model");
-    }
-
-    private getNormalizedCoords(currentX: number, currentY: number): { normX: number, normY: number } {
-        const { x: imgX, y: imgY } = this.imgDimensions;
-        const normX = currentX / imgX;
-        const normY = currentY / imgY;
-        return { normX, normY };
     }
 }
