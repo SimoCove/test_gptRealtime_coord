@@ -527,9 +527,7 @@ export class RealtimeInteraction {
                 content: [
                     {
                         type: "input_text",
-                        text: `
-                            Tactile drawing data:
-                            `
+                        text: "Tactile drawing data:"
                     },
                     {
                         type: "input_text",
@@ -576,13 +574,9 @@ export class RealtimeInteraction {
 
         let textMsg: string = "";
         if (type === "template") {
-            textMsg = `
-                    Tactile drawing template image (dimensions: ${x}x${y} px):
-                    `;
+            textMsg = `Tactile drawing template image (dimensions: ${x}x${y} px):`;
         } else if (type === "colorMap") {
-            textMsg = `
-                    Tactile drawing color map image (dimensions: ${x}x${y} px):
-                    `;
+            textMsg = `Tactile drawing color map image (dimensions: ${x}x${y} px):`;
         }
 
         const res = {
@@ -805,18 +799,14 @@ export class RealtimeInteraction {
         let textMsg = "";
 
         if (currentX === null || currentY === null) {
-            textMsg = `
-                    The user is not pointing any position.
-                    `
+            textMsg = "The user is not pointing any position."
         } else {
             const {x: imgDImX, y: imgDimY} = this.imgDimensions;
 
-            textMsg = `
-                    The user is pointing at the following coordinates (in pixels):
+            textMsg = `The user is pointing at the following coordinates (in pixels):
                     (x: ${currentX} px, y: ${currentY} px)
                     The drawing template  the color map have the following dimensions:
-                    ${imgDImX}x${imgDimY} px
-                    `
+                    ${imgDImX}x${imgDimY} px`
         }
 
         const res = {
